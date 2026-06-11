@@ -20,7 +20,7 @@ reads the whole interaction line by line with a speed control.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/im-blumenladen/
+npm run dev      # http://localhost:5173/BlumeMBT/
 npm run build    # produces an installable PWA in dist/
 npm run preview  # preview the production build
 ```
@@ -30,24 +30,20 @@ time with `node scripts/make-icons.mjs`.)
 
 ## Deploy to GitHub Pages
 
-GitHub Pages serves from a subpath like `https://USERNAME.github.io/REPO/`, so
-the app **must** be built for that path or it loads to a blank screen.
+GitHub Pages serves this repo at `https://marcelbalcik.github.io/BlumeMBT/`.
+`base` in `vite.config.js` is already set to `/BlumeMBT/` to match.
 
-1. **Set the repo name in `vite.config.js`.** Change:
+1. **Get the code onto `main`.** Merge this branch into `main` (or push there).
+   The included GitHub Actions workflow (`.github/workflows/deploy.yml`) builds
+   the app and publishes `dist/` automatically on every push to `main`.
 
-   ```js
-   const base = "/im-blumenladen/"; // ← change to "/<your-repo-name>/"
-   ```
-
-   Keep the leading and trailing slashes.
-
-2. **Push to `main`.** The included GitHub Actions workflow
-   (`.github/workflows/deploy.yml`) builds the app and publishes `dist/`.
-
-3. **Enable Pages.** In your repo: **Settings → Pages → Build and deployment →
+2. **Enable Pages.** In your repo: **Settings → Pages → Build and deployment →
    Source: GitHub Actions**.
 
-4. **Open the URL on your phone:** `https://USERNAME.github.io/REPO/`.
+3. **Wait for the build.** Check the **Actions** tab — the "Deploy to GitHub
+   Pages" workflow turns green and prints the live URL.
+
+4. **Open it on your phone:** `https://marcelbalcik.github.io/BlumeMBT/`.
 
 5. **Install it:** in Android Chrome, menu **⋮ → Add to Home Screen**. It opens
    standalone and keeps working with no network.

@@ -2,11 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-// IMPORTANT: GitHub Pages serves this app from a subpath like
-//   https://USERNAME.github.io/REPO/
-// Set `base` to "/<your-repo-name>/" (keep the leading and trailing slash).
-// Change "im-blumenladen" below to your actual repository name.
-const base = "/im-blumenladen/";
+// GitHub Pages serves this app from a subpath:
+//   https://marcelbalcik.github.io/BlumeMBT/
+// `base` must match that repo name exactly (case-sensitive), with slashes.
+const base = "/BlumeMBT/";
 
 export default defineConfig({
   base,
