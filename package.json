@@ -1,0 +1,21 @@
+{
+  "name": "im-blumenladen",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Im Blumenladen — a German trainer for a flower-shop assistant (installable PWA).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^0.21.1"
+  }
+}
