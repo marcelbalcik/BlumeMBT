@@ -7,6 +7,7 @@ import Avatar from "./Avatar.jsx";
 import SpeechBubble from "./SpeechBubble.jsx";
 import { evaluate } from "../lib/evaluate.js";
 import { speakLine, playScene, stop } from "../lib/speak.js";
+import { listenOnce, recognitionSupported } from "../lib/listen.js";
 
 const ROLES = ["customer", "boss", "you"]; // fixed positions, always on screen
 const SPEEDS = [0.6, 0.8, 1.0];
@@ -18,8 +19,14 @@ export default function SituationView({ situation, onNext }) {
   const [rate, setRate] = useState(0.8);
   const [activeLine, setActiveLine] = useState(-1); // index in script while playing
   const [playing, setPlaying] = useState(false);
+  const [listening, setListening] = useState(false); // mic active
+  const [micError, setMicError] = useState("");
 
   const stopFnRef = useRef(null);
+  const stopListenRef = useRef(null);
+
+  // Speech-to-text only exists in some browsers (Android Chrome: yes).
+  const micSupported = recognitionSupported();
 
   // Which roles actually speak in this interaction?
   const speakingRoles = new Set(situation.script.map((l) => l.who));
@@ -31,18 +38,58 @@ export default function SituationView({ situation, onNext }) {
     setShowTip(false);
     setActiveLine(-1);
     setPlaying(false);
+    setListening(false);
+    setMicError("");
     stop();
+    if (stopListenRef.current) {
+      stopListenRef.current();
+      stopListenRef.current = null;
+    }
     if (stopFnRef.current) {
       stopFnRef.current = null;
     }
   }, [situation.id]);
 
-  // Cancel playback cleanly if the component unmounts.
+  // Cancel playback / listening cleanly if the component unmounts.
   useEffect(() => {
     return () => {
       stop();
+      if (stopListenRef.current) stopListenRef.current();
     };
   }, []);
+
+  const handleMic = () => {
+    if (listening) {
+      // Tapping again stops listening.
+      if (stopListenRef.current) stopListenRef.current();
+      setListening(false);
+      return;
+    }
+    setMicError("");
+    stop(); // don't let TTS bleed into the mic
+    setListening(true);
+    stopListenRef.current = listenOnce({
+      onResult: (transcript) => {
+        // Drop the recognised German into the box so she can see/fix it,
+        // then tap Check. We append if there's already text.
+        setAnswer((prev) => (prev ? prev + " " + transcript : transcript));
+      },
+      onError: (err) => {
+        const code = typeof err === "string" ? err : err?.message || "";
+        setMicError(
+          code === "not-allowed" || code === "service-not-allowed"
+            ? "Microphone blocked — allow mic access in your browser."
+            : code === "no-speech"
+            ? "Didn't catch that — tap the mic and try again."
+            : "Speech needs an internet connection. You can type instead."
+        );
+      },
+      onEnd: () => {
+        setListening(false);
+        stopListenRef.current = null;
+      },
+    });
+  };
 
   const handlePlayScene = () => {
     if (playing) {
@@ -148,19 +195,38 @@ export default function SituationView({ situation, onNext }) {
           {showTip && <p className="turn__tip">{situation.tip}</p>}
         </div>
 
-        <textarea
-          id="answer"
-          className="turn__input"
-          lang="de"
-          rows={2}
-          placeholder="Type your German reply…"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          onKeyDown={(e) => {
-            // Ctrl/Cmd+Enter checks (handy on a phone keyboard too).
-            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleCheck();
-          }}
-        />
+        <div className="turn__inputrow">
+          <textarea
+            id="answer"
+            className="turn__input"
+            lang="de"
+            rows={2}
+            placeholder="Type your German reply…"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            onKeyDown={(e) => {
+              // Ctrl/Cmd+Enter checks (handy on a phone keyboard too).
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleCheck();
+            }}
+          />
+          {micSupported && (
+            <button
+              type="button"
+              className={"mic" + (listening ? " mic--on" : "")}
+              onClick={handleMic}
+              aria-pressed={listening}
+              aria-label={listening ? "Stop listening" : "Speak your answer"}
+              title={listening ? "Listening… tap to stop" : "Speak your answer (needs internet)"}
+            >
+              🎤
+            </button>
+          )}
+        </div>
+
+        {listening && (
+          <p className="turn__listening">Listening… speak your German reply.</p>
+        )}
+        {micError && <p className="turn__micerror">{micError}</p>}
 
         <button type="button" className="btn btn--primary" onClick={handleCheck}>
           Check my answer
