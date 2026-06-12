@@ -3,7 +3,10 @@ name: Deploy to GitHub Pages
 # Build the PWA and publish dist/ to GitHub Pages on every push to main.
 on:
   push:
-    branches: [main]
+    # Deploy from main and from the current default branch. The github-pages
+    # environment only permits the repo's DEFAULT branch, so we include it here
+    # so pushes deploy without tripping the environment protection rule.
+    branches: [main, "claude/relaxed-gates-a8t0v3"]
   workflow_dispatch:
 
 permissions:
